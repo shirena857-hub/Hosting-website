@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0">
+    <title>NE HOST | Ultra Pro Max</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <script src="https://unpkg.com/scrollreveal"></script>
+
+    <style>
+        :root {
+            --bg: #050505;
+            --accent: #007aff;
+            --accent-glow: rgba(0, 122, 255, 0.4);
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-sec: #a1a1a6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Matrix Background Canvas */
+        #matrix {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.15;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 8%; background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 100;
+            border-bottom: 0.5px solid var(--border);
+        }
+
+        .logo {
+            font-size: 22px; font-weight: 800; letter-spacing: -1px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .logo i { color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+
+        /* Small & Compact Login Button */
+        .btn-login {
+            background: var(--accent); color: white; padding: 8px 18px;
+            border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 13px;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px var(--accent-glow);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-login:active { transform: scale(0.9); }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
+
+        /* Hero Section */
+        .hero { text-align: center; padding: 120px 5% 60px; }
+        .hero h1 { font-size: clamp(35px, 8vw, 60px); margin-bottom: 20px; font-weight: 800; line-height: 1.1; }
+        .hero span { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
+        .hero p { color: var(--text-sec); font-size: 18px; max-width: 650px; margin: 0 auto 40px; }
+
+        /* Advanced Main Buttons */
+        .main-btns { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        
+        .btn-main {
+            padding: 15px 35px; border-radius: 15px; text-decoration: none; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 10px; transition: 0.4s;
+            border: 1px solid var(--border); position: relative; overflow: hidden;
+        }
+        
+        .btn-primary { background: var(--accent); color: white; border: none; box-shadow: 0 10px 25px var(--accent-glow); }
+        .btn-secondary { background: var(--glass); color: white; backdrop-filter: blur(10px); }
+
+        .btn-main:hover { transform: translateY(-5px); }
+        .btn-main::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: rgba(255,255,255,0.1); transform: rotate(45deg); transition: 0.5s;
+        }
+        .btn-main:active { transform: scale(0.95); }
+
+        /* Features Section */
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; padding: 60px 8%; }
+        .card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 40px; border-radius: 28px; transition: 0.5s;
+            text-align: left; overflow: hidden;
+        }
+        .card:hover { 
+            border-color: var(--accent); transform: translateY(-10px) scale(1.02);
+            background: rgba(255,255,255,0.06);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .card i { font-size: 35px; color: var(--accent); margin-bottom: 25px; transition: 0.3s; }
+        .card:hover i { transform: rotateY(360deg); }
+
+        /* Contact Section */
+        .contact {
+            text-align: center; padding: 80px 8%;
+            background: linear-gradient(180deg, transparent, var(--glass));
+            margin: 40px 8%; border-radius: 35px; border: 1px solid var(--border);
+        }
+
+        footer { text-align: center; padding: 50px; color: var(--text-sec); font-size: 13px; border-top: 1px solid var(--border); }
+
+        /* Scroll Animation Utility */
+        .reveal { visibility: hidden; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 40px; }
+            .btn-main { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+
+    <nav>
+        <div class="logo animate__animated animate__fadeInLeft">
+            <i class="fas fa-microchip"></i> NE-HOST<span>PRO</span>
+        </div>
+        <div class="animate__animated animate__fadeInRight">
+            <a href="/login" class="btn-login">Login <i class="fas fa-sign-in-alt"></i></a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1 class="reveal">Next Gen <span>Python Bot</span> Infrastructure</h1>
+        <p class="reveal">Deploy, scale and manage your Telegram, Discord, and Python projects with elite-level security and speed.</p>
+        <div class="main-btns reveal">
+            <a href="/login" class="btn-main btn-primary">
+                <i class="fas fa-rocket"></i> Launch Console
+            </a>
+            <a href="https://t.me/JOY_100K" class="btn-main btn-secondary" target="_blank">
+                <i class="fab fa-telegram"></i> Admin Contact
+            </a>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="card reveal">
+            <i class="fab fa-python"></i>
+            <h3>Python Optimized</h3>
+            <p>Built specifically for Python bots with automatic dependency handling and instant crash recovery.</p>
+        </div>
+        <div class="card reveal">
+            <i class="fas fa-bolt"></i>
+            <h3>Turbo Resources</h3>
+            <p>Experience the power of NVMe SSDs and dedicated RAM for lag-free execution of every bot command.</p>
+        </div>
+        <div class="card reveal">
+            <i class="fas fa-shield-halved"></i>
+            <h3>DDoS Protection</h3>
+            <p>Layer 7 security shield ensures your bots remain reachable even during large-scale network floods.</p>
+        </div>
+    </div>
+
+    <div class="contact reveal">
+        <h2>Specialized Support?</h2>
+        <p style="margin-bottom: 30px; color: var(--text-sec);">Our admins are online to help you with bot setup or custom server needs.</p>
+        <a href="https://t.me/JOY_100K" class="btn-main btn-primary" target="_blank" style="padding: 12px 40px;">
+            <i class="fab fa-telegram"></i> Message Admin
+        </a>
+    </div>
+
+    <footer>
+        &copy; 2024 NE-HOST | POWERED BY NE-CORE ADVANCED SYSTEMS
+    </footer>
+
+    <script>
+        // --- 1. Matrix Animation ---
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const letters = "0101NEHOSTPROPYTHON";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#007aff';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+
+        // --- 2. Scroll Reveal Animation ---
+        ScrollReveal().reveal('.reveal', {
+            distance: '60px',
+            duration: 1200,
+            easing: 'cubic-bezier(0.5, 0, 0, 1)',
+            interval: 200,
+            origin: 'bottom',
+            reset: false
+        });
+
+        // --- 3. Haptic/Click Feel ---
+        document.querySelectorAll('.btn-main, .btn-login').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(window.navigator.vibrate) window.navigator.vibrate(15);
+            });
+        });
+    </script>
+</body>
+</html>
