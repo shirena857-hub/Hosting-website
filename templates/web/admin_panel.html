@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>NE-CORE | Admin Authority</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap');
+    
+    :root {
+      --bg: #000000;
+      --card: rgba(28, 28, 30, 0.7);
+      --accent: #ff3b30; 
+      --blue: #007aff;   
+      --green: #34c759;  
+      --orange: #ff9f0a;
+      --border: rgba(255, 255, 255, 0.1);
+      --glass: blur(25px) saturate(180%);
+    }
+
+    body {
+      background: var(--bg); color: #fff; font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0; padding-bottom: 50px;
+    }
+
+    .navbar {
+      background: rgba(0, 0, 0, 0.5); backdrop-filter: var(--glass);
+      border-bottom: 0.5px solid var(--border); padding: 15px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 1000;
+    }
+
+    .container { max-width: 800px; margin: auto; padding: 20px; }
+
+    /* --- Monitor Screen --- */
+    .monitor-grid { 
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; 
+    }
+    .stat-pill {
+      background: var(--card); border: 0.5px solid var(--border);
+      padding: 15px; border-radius: 20px;
+    }
+    .stat-label { font-size: 10px; color: #8e8e93; font-weight: 700; text-transform: uppercase; }
+    .stat-value { font-size: 18px; font-weight: 800; display: block; margin-top: 4px; }
+    
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .dot-online { background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+    .dot-offline { background: var(--accent); }
+    .dot-suspended { background: var(--orange); }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+    /* --- User Cards --- */
+    .user-card {
+      background: var(--card); border-radius: 22px; padding: 18px;
+      margin-bottom: 15px; border: 0.5px solid var(--border);
+    }
+    .u-top { display: flex; align-items: center; gap: 15px; }
+    .u-avatar {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, #1c1c1e, #2c2c2e);
+      display: flex; align-items: center; justify-content: center; font-weight: 800;
+    }
+
+    .badge-row { margin-top: 8px; display: flex; gap: 5px; }
+    .ios-badge {
+      font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase;
+    }
+    .badge-limit { background: rgba(0, 122, 255, 0.1); color: var(--blue); }
+    .badge-active { background: rgba(52, 199, 89, 0.1); color: var(--green); }
+    .badge-banned { background: rgba(255, 59, 48, 0.1); color: var(--accent); }
+
+    .actions {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      margin-top: 15px; border-top: 0.5px solid var(--border); padding-top: 15px;
+    }
+    .ios-btn {
+      background: rgba(255,255,255,0.05); border: none; border-radius: 12px;
+      padding: 10px 0; color: #fff; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .ios-btn span { font-size: 9px; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div style="font-weight:800; font-size:18px;">NE Authority</div>
+  <button class="ios-btn" style="flex-direction:row; padding:8px 15px; background:var(--blue); border-radius:20px;" onclick="createUser()">
+    <i class="fa-solid fa-plus"></i> <span style="margin-left:5px;">New Identity</span>
+  </button>
+</nav>
+
+<div class="container">
+  <div class="monitor-grid">
+    <div class="stat-pill">
+      <span class="stat-label">Active Nodes</span>
+      <span class="stat-value"><span class="dot dot-online"></span> <span id="onlineCount">0</span> Online</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-label">Total Servers</span>
+      <span class="stat-value" id="totalSrvCount">0</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-label">Suspended</span>
+      <span class="stat-value"><span class="dot dot-suspended"></span> <span id="suspendedCount">0</span> Users</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-label">CPU Usage</span>
+      <span class="stat-value" id="cpuVal">0%</span>
+    </div>
+  </div>
+
+  <div id="userList"></div>
+</div>
+
+<script>
+async function loadData() {
+    try {
+        const r = await fetch('/admin/stats');
+        const d = await r.json();
+        
+        document.getElementById('cpuVal').innerText = d.sys_cpu || "0%";
+        
+        let totalSrv = 0;
+        let onlineSrv = 0;
+        let bannedUsers = 0;
+
+        const list = document.getElementById('userList');
+        list.innerHTML = d.users.map(u => {
+            totalSrv += u.srv_count;
+            onlineSrv += u.active_srvs;
+            if(u.status === 'banned') bannedUsers++;
+
+            // FIX: server_limit undefined check based on your app.py
+            const limit = u.server_limit !== undefined ? u.server_limit : 1;
+
+            return `
+            <div class="user-card animate__animated animate__fadeIn">
+                <div class="u-top">
+                    <div class="u-avatar">${u.fname[0]}</div>
+                    <div style="flex:1">
+                        <h4 style="margin:0;">${u.fname}</h4>
+                        <div class="badge-row">
+                            <span class="ios-badge badge-limit">Limit: ${limit}</span>
+                            <span class="ios-badge ${u.status === 'active' ? 'badge-active' : 'badge-banned'}">${u.status}</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right; font-size:11px; font-weight:700;">
+                        <div style="color:var(--green)">${u.active_srvs} ON</div>
+                        <div style="color:#8e8e93">${u.srv_count} TOTAL</div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="ios-btn" onclick="editPermissions(${u.id}, '${u.role}', ${limit}, '${u.status}')">
+                        <i class="fa-solid fa-sliders"></i><span>Limit</span>
+                    </button>
+                    
+                    ${u.status === 'active' ? 
+                        `<button class="ios-btn" style="color:var(--accent)" onclick="toggleBan(${u.id}, 'banned')">
+                            <i class="fa-solid fa-user-slash"></i><span>Ban</span>
+                        </button>` : 
+                        `<button class="ios-btn" style="color:var(--green)" onclick="toggleBan(${u.id}, 'active')">
+                            <i class="fa-solid fa-user-check"></i><span>Unban</span>
+                        </button>`
+                    }
+
+                    <button class="ios-btn" onclick="location.href='/admin/manage-user/${u.id}'">
+                        <i class="fa-solid fa-server"></i><span>Manage</span>
+                    </button>
+                    <button class="ios-btn" style="color:var(--accent)" onclick="deleteUser(${u.id})">
+                        <i class="fa-solid fa-trash"></i><span>Purge</span>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+
+        document.getElementById('onlineCount').innerText = onlineSrv;
+        document.getElementById('totalSrvCount').innerText = totalSrv;
+        document.getElementById('suspendedCount').innerText = bannedUsers;
+
+    } catch(e) { console.error("Sync Error"); }
+}
+
+async function toggleBan(id, newStatus) {
+    await fetch('/admin/user/update', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ user_id: id, status: newStatus, role: 'free', limit: 1 }) 
+    });
+    loadData();
+}
+
+async function editPermissions(id, role, limit, status) {
+    const { value: form } = await Swal.fire({
+        title: 'Modify Permissions',
+        background: '#1c1c1e', color: '#fff',
+        html: `
+            <input id="sw-limit" type="number" class="swal2-input" value="${limit}" style="background:#2c2c2e; color:white; border-radius:10px;">
+            <select id="sw-role" class="swal2-input" style="background:#2c2c2e; color:white; border-radius:10px;">
+                <option value="free" ${role==='free'?'selected':''}>Free</option>
+                <option value="premium" ${role==='premium'?'selected':''}>Premium</option>
+            </select>
+        `,
+        preConfirm: () => ({
+            user_id: id,
+            limit: document.getElementById('sw-limit').value,
+            role: document.getElementById('sw-role').value,
+            status: status
+        })
+    });
+    if(form) {
+        await fetch('/admin/user/update', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(form)
+        });
+        loadData();
+    }
+}
+
+async function createUser() {
+    const { value: v } = await Swal.fire({
+        title: 'New Identity',
+        background: '#1c1c1e', color: '#fff',
+        html: `
+            <input id="n-name" class="swal2-input" placeholder="Full Name">
+            <input id="n-email" class="swal2-input" placeholder="Email Address">
+            <input id="n-pass" class="swal2-input" type="password" placeholder="Password">
+            <input id="n-limit" type="number" class="swal2-input" placeholder="Server Limit" value="1">
+        `,
+        preConfirm: () => ({
+            name: document.getElementById('n-name').value,
+            email: document.getElementById('n-email').value,
+            pass: document.getElementById('n-pass').value,
+            limit: document.getElementById('n-limit').value
+        })
+    });
+    if(v) {
+        await fetch('/admin/create-user', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify(v) 
+        });
+        loadData();
+    }
+}
+
+async function deleteUser(id) {
+    const res = await Swal.fire({ title: 'Purge User?', icon: 'warning', background: '#1c1c1e', color: '#fff', showCancelButton: true });
+    if(res.isConfirmed) {
+        await fetch(`/admin/delete-user/${id}`, { method: 'POST' });
+        loadData();
+    }
+}
+
+setInterval(loadData, 5000);
+loadData();
+</script>
+</body>
+</html>

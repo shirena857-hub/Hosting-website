@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>Manage Server | NE HOST Authority</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+
+    :root { 
+      --bg: #050505; 
+      --card: rgba(255, 255, 255, 0.03); 
+      --accent: #af52de;
+      --blue: #007aff;
+      --border: rgba(255, 255, 255, 0.08);
+      --danger: #ff3b30;
+      --success: #32d74b;
+      --warning: #ff9f0a;
+      --glass: blur(20px) saturate(180%);
+      --text-main: #ffffff;
+      --text-muted: #86868b;
+    }
+
+    body { 
+      margin: 0; font-family: 'Inter', sans-serif; 
+      background: var(--bg); color: var(--text-main);
+      background-image: 
+        radial-gradient(circle at 20% 20%, rgba(175, 82, 222, 0.08), transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(0, 122, 255, 0.08), transparent 40%);
+      min-height: 100vh;
+    }
+
+    .topbar { 
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 15px 20px; background: rgba(5, 5, 5, 0.8); 
+      backdrop-filter: var(--glass); border-bottom: 1px solid var(--border); 
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .back-btn { 
+      width: 40px; height: 40px; border-radius: 12px; 
+      display: flex; align-items: center; justify-content: center; 
+      border: 1px solid var(--border); cursor: pointer; transition: 0.2s;
+      background: rgba(255,255,255,0.05); color: #fff;
+    }
+    .back-btn:hover { background: #fff; color: #000; }
+
+    .page-title { font-weight: 800; font-size: 16px; letter-spacing: -0.5px; }
+
+    .container { padding: 20px 15px; max-width: 800px; margin: auto; }
+
+    .user-header { 
+      text-align: center; margin-bottom: 30px; 
+      padding-bottom: 20px; border-bottom: 1px solid var(--border);
+    }
+    .user-avatar {
+        width: 70px; height: 70px; background: linear-gradient(135deg, var(--blue), var(--accent));
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 28px; font-weight: 900; margin: 0 auto 15px;
+        box-shadow: 0 0 20px rgba(175, 82, 222, 0.2);
+    }
+    .user-header h1 { font-size: 22px; font-weight: 900; margin: 0; }
+    .user-header p { color: var(--text-muted); font-size: 13px; margin-top: 5px; }
+
+    /* Server Card & Header */
+    .srv-card { 
+      background: var(--card); border-radius: 20px; padding: 20px; 
+      border: 1px solid var(--border); margin-bottom: 20px;
+      transition: 0.3s ease;
+    }
+    
+    .srv-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+    
+    .srv-info { flex: 1; min-width: 0; }
+    .srv-info h3 { margin: 0; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .srv-path { 
+        margin-top: 6px; font-size: 11px; color: var(--text-muted); 
+        background: rgba(255,255,255,0.05); padding: 3px 8px; border-radius: 6px; 
+        display: inline-block; font-family: monospace;
+    }
+
+    .status-badge { 
+      flex-shrink: 0;
+      padding: 6px 10px; border-radius: 12px; font-size: 10px; font-weight: 800; 
+      text-transform: uppercase; background: rgba(255,255,255,0.05); color: var(--text-muted);
+      border: 1px solid var(--border); display: flex; align-items: center; gap: 5px;
+      min-width: 85px; justify-content: center;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; }
+    
+    .status-online { color: var(--success); background: rgba(50, 215, 75, 0.1); border-color: rgba(50, 215, 75, 0.2); }
+    .status-online .status-dot { background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 2s infinite; }
+    
+    .status-suspended { color: var(--danger); background: rgba(255, 59, 48, 0.1); border-color: rgba(255, 59, 48, 0.3); }
+    .status-suspended .status-dot { background: var(--danger); }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+    .action-grid { 
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; 
+    }
+
+    .btn { 
+      padding: 12px; border-radius: 12px; border: none; font-size: 12px; 
+      font-weight: 700; cursor: pointer; display: flex; align-items: center; 
+      justify-content: center; gap: 6px; color: #fff; transition: 0.2s;
+    }
+
+    .btn-login { background: rgba(0, 122, 255, 0.15); color: var(--blue); border: 1px solid rgba(0, 122, 255, 0.1); }
+    .btn-files { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); }
+    .btn-start { background: rgba(50, 215, 75, 0.1); color: var(--success); border: 1px solid rgba(50, 215, 75, 0.1); }
+    .btn-stop { background: rgba(255, 59, 48, 0.1); color: var(--danger); border: 1px solid rgba(255, 59, 48, 0.1); }
+    .btn-suspend { background: rgba(255, 159, 10, 0.15); color: var(--warning); border: 1px solid rgba(255, 159, 10, 0.2); }
+    .btn-unsuspend { background: rgba(50, 215, 75, 0.15); color: var(--success); border: 1px solid rgba(50, 215, 75, 0.2); }
+
+    .destroy-zone { margin-top: 15px; border-top: 1px solid var(--border); padding-top: 12px; text-align: center; }
+    .btn-destroy { 
+      background: transparent; color: #444; font-size: 10px; 
+      font-weight: 700; cursor: pointer; border: none;
+    }
+    .btn-destroy:hover { color: var(--danger); }
+
+    .empty-state { text-align: center; padding: 50px 0; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="back-btn" onclick="location.href='/admin/panel'">
+    <i class="fas fa-arrow-left"></i>
+  </div>
+  <div class="page-title">Manage User Servers</div>
+  <div style="width: 40px;"></div>
+</div>
+
+<div class="container">
+  
+  <div class="user-header animate__animated animate__fadeInDown">
+    <div class="user-avatar">{{ user.fname[0] }}</div>
+    <h1>{{ user.fname }}</h1>
+    <p>{{ user.email }}</p>
+  </div>
+
+  {% if servers %}
+    {% for s in servers %}
+    <div class="srv-card animate__animated animate__fadeInUp" id="card-{{ s.id }}">
+      
+      <div class="srv-header">
+        <div class="srv-info">
+          <h3><i class="fas fa-server" style="color:var(--accent)"></i> {{ s.name }}</h3>
+          <div class="srv-path">{{ s.folder }}</div>
+        </div>
+        
+        <div class="status-badge {% if s.status == 'suspended' %}status-suspended{% elif s.online %}status-online{% endif %}">
+          <span class="status-dot"></span>
+          <span class="text">
+            {% if s.status == 'suspended' %}SUSPENDED{% elif s.online %}ONLINE{% else %}OFFLINE{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="action-grid">
+        <button class="btn btn-login" onclick="location.href='/admin/login-as/{{ user.id }}'">
+          <i class="fas fa-user-shield"></i> Access
+        </button>
+
+        <button class="btn btn-files" onclick="location.href='/admin/files/{{ s.folder }}'">
+          <i class="fas fa-folder"></i> Files
+        </button>
+
+        {% if s.status == 'suspended' %}
+        <button class="btn btn-unsuspend" onclick="toggleSuspension('{{ s.id }}', 'active')">
+          <i class="fas fa-unlock"></i> Unsuspend
+        </button>
+        {% else %}
+        <button class="btn btn-suspend" onclick="toggleSuspension('{{ s.id }}', 'suspended')">
+          <i class="fas fa-ban"></i> Suspend
+        </button>
+        {% endif %}
+
+        <button class="btn btn-stop" onclick="serverAction('{{ s.folder }}', 'stop')">
+          <i class="fas fa-power-off"></i> Force Stop
+        </button>
+      </div>
+
+      <div class="destroy-zone">
+        <button class="btn-destroy" onclick="deleteServer('{{ s.id }}', '{{ s.folder }}')">
+          <i class="fas fa-trash-alt"></i> DESTROY INSTANCE
+        </button>
+      </div>
+
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <i class="fas fa-ghost" style="font-size: 40px; margin-bottom: 20px;"></i>
+      <p>No servers found for this user.</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  // Server Action (Start/Stop)
+  async function serverAction(folder, act) {
+    const res = await fetch(`/server/action/${folder}/${act}`, { method: 'POST' });
+    const data = await res.json();
+    if(data.status === 'started' || data.status === 'stopped' || data.status === 'ok') {
+      Swal.fire({ 
+        toast: true, position: 'top', icon: 'success', 
+        title: 'Action Processed', showConfirmButton: false, timer: 1500,
+        background: '#1c1c1e', color: '#fff' 
+      });
+      setTimeout(() => location.reload(), 1500);
+    } else if (data.msg) {
+        Swal.fire('Error', data.msg, 'error');
+    }
+  }
+
+  // Toggle Suspension Logic (Connects to /admin/suspend-server/<id>)
+  async function toggleSuspension(srvId, newStatus) {
+    const actionText = newStatus === 'suspended' ? 'Suspend' : 'Unsuspend';
+    
+    const confirm = await Swal.fire({
+      title: actionText + ' Server?',
+      text: newStatus === 'suspended' ? "The user won't be able to start this server." : "The user will be able to manage this server again.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: newStatus === 'suspended' ? '#ff9f0a' : '#32d74b',
+      background: '#121216', color: '#fff'
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        const res = await fetch(`/admin/suspend-server/${srvId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+          Swal.fire({
+            icon: 'success', title: 'Updated',
+            toast: true, position: 'top', showConfirmButton: false, timer: 1000
+          });
+          setTimeout(() => location.reload(), 1000);
+        }
+      } catch (e) {
+        Swal.fire('Error', 'Request failed', 'error');
+      }
+    }
+  }
+
+  // Delete Server
+  async function deleteServer(id, folder) {
+    const confirm = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Permanent data wipe for folder: " + folder,
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonColor: '#ff3b30',
+      background: '#121216', color: '#fff'
+    });
+
+    if (confirm.isConfirmed) {
+      const res = await fetch(`/admin/delete-server/${id}`, { method: 'POST' });
+      const data = await res.json();
+      if(data.status === 'deleted') {
+        location.reload();
+      }
+    }
+  }
+</script>
+
+</body>
+</html>

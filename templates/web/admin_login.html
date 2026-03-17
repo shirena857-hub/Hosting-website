@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>Admin Access | NE HOST</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+
+    :root {
+      --admin-accent: #af52de; /* Admin Purple */
+      --admin-glow: rgba(175, 82, 222, 0.3);
+      --bg: #050505;
+      --glass: rgba(255, 255, 255, 0.02);
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(175, 82, 222, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(0, 122, 255, 0.08) 0%, transparent 40%);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    /* Hardware Accelerated Glass Card */
+    .admin-box {
+      background: var(--glass);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      padding: 50px 40px;
+      border-radius: 32px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid var(--border);
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+      position: relative;
+      will-change: transform;
+    }
+
+    /* Top Progress Loader */
+    .loader {
+      position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+      background: rgba(255,255,255,0.05); display: none; overflow: hidden;
+      border-radius: 32px 32px 0 0;
+    }
+    .fill { height: 100%; background: var(--admin-accent); width: 0%; box-shadow: 0 0 15px var(--admin-accent); transition: width 0.4s; }
+
+    .brand-icon {
+      width: 70px; height: 70px;
+      background: rgba(175, 82, 222, 0.1);
+      border-radius: 20px;
+      border: 1px solid rgba(175, 82, 222, 0.2);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 25px; font-size: 30px; color: var(--admin-accent);
+      text-shadow: 0 0 20px var(--admin-glow);
+    }
+
+    h2 { color: #fff; font-size: 26px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+    p.desc { color: #86868b; font-size: 14px; margin-bottom: 35px; }
+
+    .input-wrapper { position: relative; margin-bottom: 20px; }
+    
+    .input-wrapper i {
+      position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+      color: #555; font-size: 18px; transition: 0.3s;
+    }
+
+    input {
+      width: 100%; padding: 16px 16px 16px 52px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px; color: #fff; font-size: 15px;
+      outline: none; transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--admin-accent);
+      background: rgba(255,255,255,0.06);
+      box-shadow: 0 0 20px rgba(175, 82, 222, 0.15);
+    }
+
+    input:focus + i { color: var(--admin-accent); }
+
+    button {
+      background: linear-gradient(135deg, #af52de, #6a11cb);
+      color: #fff; border: none; width: 100%; padding: 18px;
+      border-radius: 16px; font-weight: 700; font-size: 16px;
+      cursor: pointer; transition: 0.3s; margin-top: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px var(--admin-glow);
+      filter: brightness(1.1);
+    }
+
+    button:active { transform: scale(0.98); }
+
+    /* Custom Admin Toast */
+    .admin-toast {
+        background: rgba(15, 10, 20, 0.95) !important;
+        backdrop-filter: blur(15px) !important;
+        border: 1px solid rgba(175, 82, 222, 0.3) !important;
+        border-radius: 18px !important;
+        color: #fff !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-box">
+    <div class="loader" id="ldBox"><div class="fill" id="ldBar"></div></div>
+    
+    <div class="brand-icon">
+      <i class="fas fa-user-shield"></i>
+    </div>
+
+    <h2>Admin Portal</h2>
+    <p class="desc">Restricted access area</p>
+
+    <form method="POST" id="adminForm" onsubmit="handleAdminLogin(event)">
+      <div class="input-wrapper">
+        <input name="username" placeholder="Admin Username" required>
+        <i class="fas fa-user"></i>
+      </div>
+      
+      <div class="input-wrapper">
+        <input name="password" type="password" placeholder="Master Password" required>
+        <i class="fas fa-key"></i>
+      </div>
+      
+      <button type="submit" id="btnTxt">
+        Authorize Access <i class="fas fa-unlock"></i>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    async function handleAdminLogin(e) {
+      // Form submit handle korar jonno default reload bondho kora holo animation dekhate
+      const btn = document.getElementById('btnTxt');
+      const ldBox = document.getElementById('ldBox');
+      const ldBar = document.getElementById('ldBar');
+      
+      ldBox.style.display = 'block';
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Checking...';
+      
+      let w = 0;
+      const progress = setInterval(() => {
+          if(w < 90) { w += 15; ldBar.style.width = w + '%'; }
+      }, 100);
+
+      // Note: Backend handle korar jonno fetch use kora jay, kintu traditional form submit hole logic ektu boro hobe.
+      // Eikhane sudhu UI animation tuku dewa holo.
+    }
+
+    // Admin Specific Toast Notification
+    {% if error %}
+    Swal.fire({
+        toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+        icon: 'error', title: 'Invalid Admin Credentials',
+        customClass: { popup: 'admin-toast' }
+    });
+    {% endif %}
+  </script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>NE HOST | Ultra Pro Max</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/python/python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root { 
+      --bg: #050505; 
+      --card: rgba(18, 18, 22, 0.7); 
+      --accent: #007aff; 
+      --border: rgba(255, 255, 255, 0.08); 
+      --text-main: #ffffff;
+      --text-dim: #a1a1aa;
+      --glass: blur(12px);
+      --terminal-bg: #0d0d0f;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body { 
+        margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main);
+        background-image: radial-gradient(circle at 0% 0%, rgba(0, 122, 255, 0.05) 0%, transparent 40%);
+        min-height: 100vh; overflow-x: hidden;
+    }
+
+    .topbar { display: flex; justify-content: space-between; padding: 12px 20px; background: rgba(10, 10, 12, 0.8); backdrop-filter: var(--glass); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
+    .logo-box { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    .logo-icon { background: linear-gradient(135deg, #ff0055, #7000ff); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; }
+
+    .container { padding: 20px 15px; max-width: 800px; margin: auto; }
+
+    /* Pterodactyl Style Console */
+    #console-wrapper { background: var(--terminal-bg); border-radius: 12px; border: 1px solid #2a2a2e; overflow: hidden; margin-bottom: 15px; }
+    .terminal-header { background: #1a1a1d; padding: 8px 15px; border-bottom: 1px solid #2a2a2e; display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono'; font-size: 10px; color: #888; }
+    #console { height: 300px; padding: 15px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5; color: #d1d1d1; }
+    .terminal-input-area { background: #121214; padding: 10px 15px; border-top: 1px solid #2a2a2e; display: flex; align-items: center; gap: 10px; }
+    .terminal-input-area input { background: transparent; border: none; color: #32d74b; flex: 1; font-family: 'JetBrains Mono'; font-size: 13px; outline: none; }
+    .log-line { margin-bottom: 2px; }
+    .log-time { color: #5c6370; margin-right: 8px; }
+
+    .srv-card { background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); transition: 0.3s; backdrop-filter: var(--glass); }
+    .btn { padding: 10px 16px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; transition: 0.2s; }
+    .btn:active { transform: scale(0.95); }
+    .btn-blue { background: var(--accent); color: white; }
+    .btn-gray { background: #1c1c1e; color: #fff; border: 1px solid var(--border); }
+
+    .file-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .menu-content { background: #1c1c22; width: 280px; border-radius: 20px; border: 1px solid var(--border); }
+    .menu-item { padding: 14px 20px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    
+    #editor { display:none; position:fixed; inset:0; background:var(--bg); z-index:6000; padding:15px; }
+    .CodeMirror { height: 85vh; border-radius: 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="logo-box">
+        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+        <span>NE HOST</span>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <button class="btn btn-gray" onclick="location.href='/logout'"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+</div>
+
+<div class="container" id="homeView">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2 style="margin:0;">Instances</h2>
+        <button class="btn btn-blue" onclick="createServer()"><i class="fas fa-plus"></i> Create</button>
+    </div>
+    <div id="srvList"></div>
+</div>
+
+<div class="container" id="manageView" style="display:none">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button class="btn btn-gray" onclick="location.reload()"><i class="fas fa-arrow-left"></i></button>
+        <div id="vUptime" style="font-size:11px; font-family:'JetBrains Mono'; color:var(--text-dim);">OFFLINE</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
+        <button class="btn btn-blue" style="justify-content:center" onclick="srvAction('start')"><i class="fas fa-play"></i> START</button>
+        <button class="btn btn-gray" style="justify-content:center" onclick="srvAction('restart')"><i class="fas fa-sync"></i> RESTART</button>
+        <button class="btn btn-gray" style="justify-content:center; color:#ff453a" onclick="srvAction('stop')"><i class="fas fa-stop"></i> STOP</button>
+    </div>
+
+    <!-- 🔥 DELETE SERVER BUTTON -->
+    <div style="margin-top: 10px; margin-bottom: 15px;">
+        <button class="btn btn-gray" style="justify-content:center; color:#ff453a; width:100%;" onclick="deleteServer()">
+            <i class="fas fa-trash"></i> DELETE SERVER
+        </button>
+    </div>
+
+    <div id="console-wrapper">
+        <div class="terminal-header">
+            <span><i class="fas fa-terminal"></i> CONSOLE</span>
+            <span id="vSrvName" style="color:var(--accent)">-</span>
+        </div>
+        <div id="console"></div>
+        <div class="terminal-input-area">
+            <span style="color:var(--accent); font-weight:bold;">$</span>
+            <input type="text" id="termCmd" placeholder="Type a command..." onkeydown="if(event.key==='Enter') sendConsoleCommand()">
+        </div>
+    </div>
+
+    <div style="background:var(--card); border-radius:18px; border:1px solid var(--border); overflow:hidden;">
+        <div style="padding:15px; background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:800; font-size:13px;">FILE MANAGER</span>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-gray" style="padding:5px 10px" onclick="document.getElementById('fUp').click()"><i class="fas fa-upload"></i></button>
+                <button class="btn btn-gray" style="padding:5px 10px" onclick="createNew('file')"><i class="fas fa-plus"></i></button>
+                <input type="file" id="fUp" hidden onchange="uploadFile(this)">
+            </div>
+        </div>
+        <div id="fileList"></div>
+    </div>
+</div>
+
+<div class="menu-overlay" id="menuOverlay" onclick="this.style.display='none'">
+    <div class="menu-content" onclick="event.stopPropagation()">
+        <div class="menu-item" id="btnEdit"><i class="fas fa-edit"></i> Edit File</div>
+        <div class="menu-item" id="btnRename"><i class="fas fa-pen"></i> Rename</div>
+        <div class="menu-item" id="btnZip"><i class="fas fa-file-archive"></i> Archive</div>
+        <div class="menu-item" id="btnUnzip"><i class="fas fa-box-open"></i> Unzip</div>
+        <div class="menu-item" id="btnDelete" style="color:#ff453a"><i class="fas fa-trash"></i> Delete</div>
+    </div>
+</div>
+
+<div id="editor">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <span id="edFile" style="font-family:'JetBrains Mono'; font-size:13px;"></span>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-gray" onclick="closeEditor()">CLOSE</button>
+            <button class="btn btn-blue" onclick="saveFile()">SAVE CHANGES</button>
+        </div>
+    </div>
+    <textarea id="edText"></textarea>
+</div>
+
+<script>
+let curSrv = null; 
+let logItv = null; 
+let currentSubPath = ""; 
+let editorInstance = null;
+
+// Load servers list
+async function loadSrv() {
+    try {
+        const r = await fetch('/servers'); 
+        const d = await r.json();
+        document.getElementById('srvList').innerHTML = d.servers.map(s => `
+            <div class="srv-card animate__animated animate__fadeInUp">
+                <div onclick='openSrv(${JSON.stringify(s)})' style="cursor:pointer; flex:1">
+                    <div style="font-weight:800; font-size:16px;">${s.name}</div>
+                    <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">${s.folder}</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:10px; color:${s.online?'#32d74b':'#666'}">${s.online?'RUNNING':'OFFLINE'}</div>
+                    <div style="font-size:10px; color:#555; margin-top:5px;">${s.cpu} | ${s.ram}</div>
+                </div>
+            </div>`).join('');
+    } catch (e) {
+        console.error('Error loading servers:', e);
+    }
+}
+
+function openSrv(s) {
+    curSrv = s; 
+    document.getElementById('homeView').style.display='none'; 
+    document.getElementById('manageView').style.display='block';
+    document.getElementById('vSrvName').innerText = s.name;
+    loadFiles(); 
+    startLogs();
+}
+
+async function unzipAction(name) {
+    Swal.fire({title:'Extracting...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+    try {
+        const res = await fetch(`/files/unzip/${curSrv.folder}`, {
+            method:'POST', 
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({name: name, path: currentSubPath})
+        });
+        const d = await res.json(); 
+        Swal.close();
+        if(d.status==='success'){ 
+            loadFiles(); 
+            Swal.fire({toast:true, position:'top-end', icon:'success', title:'Extracted!', timer:2000, background:'#1c1c1e', color:'#fff', showConfirmButton:false}); 
+        } else { 
+            Swal.fire({icon:'error', title:'Error', text:d.msg || 'Failed to extract', background:'#1c1c1e', color:'#fff'}); 
+        }
+    } catch (e) {
+        Swal.close();
+        Swal.fire({icon:'error', title:'Error', text:'Could not reach server', background:'#1c1c1e', color:'#fff'});
+    }
+}
+
+function startLogs() {
+    if(logItv) clearInterval(logItv);
+    logItv = setInterval(async () => {
+        if(!curSrv) return;
+        try {
+            const r = await fetch(`/server/log/${curSrv.folder}`); 
+            const d = await r.json();
+            const c = document.getElementById('console');
+            if(d.log && d.log !== c.getAttribute('data-raw')) {
+                c.setAttribute('data-raw', d.log);
+                c.innerHTML = d.log.split('\n').map(l => l.trim() ? `<div class="log-line"><span class="log-time">[${new Date().toLocaleTimeString()}]</span>${l}</div>` : '').join('');
+                c.scrollTop = c.scrollHeight;
+            }
+            document.getElementById('vUptime').innerHTML = d.online ? 'UPTIME: ' + d.uptime : 'OFFLINE';
+        } catch (e) {
+            console.error('Log fetch error', e);
+        }
+    }, 2000);
+}
+
+async function loadFiles() {
+    try {
+        const r = await fetch(`/files/list/${curSrv.folder}?path=${encodeURIComponent(currentSubPath)}`); 
+        const d = await r.json();
+        document.getElementById('fileList').innerHTML = d.map(f => `
+            <div class="file-item" onclick="${f.is_dir ? `enterFolder('${f.name}')` : ''}">
+                <span><i class="fas ${f.is_dir?'fa-folder':'fa-file'}"></i> ${f.name}</span>
+                <i class="fas fa-ellipsis-v" onclick="event.stopPropagation(); openFileMenu('${f.name}', ${f.is_zip}, ${f.is_dir})"></i>
+            </div>`).join('');
+    } catch (e) {
+        console.error('Error loading files', e);
+    }
+}
+
+function openFileMenu(name, isZip, isDir) {
+    document.getElementById('btnEdit').style.display = isDir ? 'none' : 'flex';
+    document.getElementById('btnUnzip').style.display = isZip ? 'flex' : 'none';
+    document.getElementById('btnEdit').onclick = () => editFile(name);
+    document.getElementById('btnUnzip').onclick = () => unzipAction(name);
+    document.getElementById('btnDelete').onclick = () => deleteFile(name);
+    document.getElementById('btnRename').onclick = () => renameFile(name);
+    document.getElementById('menuOverlay').style.display = 'flex';
+}
+
+function enterFolder(n) { 
+    currentSubPath += (currentSubPath===""?"":"/")+n; 
+    loadFiles(); 
+}
+
+async function srvAction(a) { 
+    try {
+        await fetch(`/server/action/${curSrv.folder}/${a}`, {method:'POST'}); 
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// 🔥 NEW DELETE SERVER FUNCTION
+async function deleteServer() {
+    const confirm = await Swal.fire({
+        title: 'Delete Server?',
+        text: 'This will permanently delete all files and data. This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff3b30',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it',
+        background: '#1c1c1e',
+        color: '#fff'
+    });
+
+    if (confirm.isConfirmed) {
+        try {
+            const res = await fetch(`/server/delete/${curSrv.folder}`, { method: 'POST' });
+            const data = await res.json();
+            if (data.status === 'deleted') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Server deleted',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: '#1c1c1e',
+                    color: '#fff'
+                });
+                // Go back to home view
+                document.getElementById('manageView').style.display = 'none';
+                document.getElementById('homeView').style.display = 'block';
+                loadSrv(); // refresh list
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.msg || 'Could not delete server',
+                    background: '#1c1c1e',
+                    color: '#fff'
+                });
+            }
+        } catch (e) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Network error',
+                background: '#1c1c1e',
+                color: '#fff'
+            });
+        }
+    }
+}
+
+async function createServer() {
+    const { value: n } = await Swal.fire({
+        title: 'Server Name',
+        input: 'text',
+        background: '#1c1c1e',
+        color: '#fff',
+        inputValidator: (value) => !value ? 'Server name required!' : null
+    });
+    if (n) {
+        try {
+            const res = await fetch('/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: n })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                loadSrv();  // reload server list
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: data.msg || 'Server created!',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: '#1c1c1e',
+                    color: '#fff'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Creation Failed',
+                    text: data.msg || 'Unknown error',
+                    background: '#1c1c1e',
+                    color: '#fff'
+                });
+            }
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Network Error',
+                text: 'Could not reach server',
+                background: '#1c1c1e',
+                color: '#fff'
+            });
+        }
+    }
+}
+
+async function editFile(n) {
+    try {
+        const res = await fetch(`/files/read/${curSrv.folder}?name=${encodeURIComponent(n)}&path=${encodeURIComponent(currentSubPath)}`);
+        const data = await res.json();
+        document.getElementById('edFile').innerText = n;
+        document.getElementById('edText').value = data.content;
+        document.getElementById('editor').style.display = 'block';
+        if(!editorInstance) {
+            editorInstance = CodeMirror.fromTextArea(document.getElementById('edText'), { mode: "python", theme: "dracula", lineNumbers: true });
+        } else { 
+            editorInstance.setValue(data.content); 
+        }
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Could not read file', background: '#1c1c1e', color: '#fff' });
+    }
+}
+
+async function saveFile() {
+    const n = document.getElementById('edFile').innerText;
+    const c = editorInstance.getValue();
+    try {
+        await fetch(`/files/save/${curSrv.folder}`, {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ name: n, content: c, path: currentSubPath })
+        });
+        closeEditor(); 
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Saved', timer: 2000, background: '#1c1c1e', color: '#fff', showConfirmButton: false });
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Could not save', background: '#1c1c1e', color: '#fff' });
+    }
+}
+
+async function uploadFile(input) {
+    if(!input.files[0]) return;
+    let fd = new FormData(); 
+    fd.append("file", input.files[0]); 
+    fd.append("path", currentSubPath);
+    try {
+        await fetch(`/files/upload/${curSrv.folder}`, { method: 'POST', body: fd }); 
+        loadFiles(); 
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Uploaded', timer: 2000, background: '#1c1c1e', color: '#fff', showConfirmButton: false });
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Upload failed', background: '#1c1c1e', color: '#fff' });
+    }
+}
+
+async function createNew(type) {
+    const { value: n } = await Swal.fire({ title: 'New ' + type, input: 'text', background: '#1c1c1e', color: '#fff' });
+    if (n) {
+        const url = type === 'file' ? `/files/create-file/${curSrv.folder}` : `/files/create-folder/${curSrv.folder}`;
+        try {
+            await fetch(url, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ name: n, path: currentSubPath }) 
+            });
+            loadFiles();
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Creation failed', background: '#1c1c1e', color: '#fff' });
+        }
+    }
+}
+
+async function deleteFile(n) {
+    const res = await Swal.fire({ title: 'Delete?', text: n, icon: 'warning', showCancelButton: true, background: '#1c1c1e', color: '#fff' });
+    if (res.isConfirmed) {
+        try {
+            await fetch(`/files/delete-bulk/${curSrv.folder}`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ names: [n], path: currentSubPath }) 
+            });
+            loadFiles();
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Delete failed', background: '#1c1c1e', color: '#fff' });
+        }
+    }
+}
+
+async function renameFile(n) {
+    const { value: newName } = await Swal.fire({
+        title: 'Rename',
+        input: 'text',
+        inputValue: n,
+        background: '#1c1c1e',
+        color: '#fff',
+        inputValidator: (value) => !value ? 'Name required!' : null
+    });
+    if (newName && newName !== n) {
+        try {
+            await fetch(`/files/rename/${curSrv.folder}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ old: n, new: newName, path: currentSubPath })
+            });
+            loadFiles();
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Rename failed', background: '#1c1c1e', color: '#fff' });
+        }
+    }
+}
+
+function sendConsoleCommand() {
+    const cmd = document.getElementById('termCmd').value;
+    if (cmd) { 
+        fetch(`/server/command/${curSrv.folder}`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ command: cmd }) 
+        }); 
+        document.getElementById('termCmd').value = ''; 
+    }
+}
+
+function closeEditor() { 
+    document.getElementById('editor').style.display = 'none'; 
+}
+
+document.addEventListener('DOMContentLoaded', loadSrv);
+</script>
+</body>
+</html>
