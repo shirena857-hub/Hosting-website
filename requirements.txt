@@ -27,3 +27,5 @@ idna
 multidict
 yarl
 frozenlist
+schedule
+rich
