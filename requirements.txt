@@ -29,3 +29,7 @@ yarl
 frozenlist
 schedule
 rich
+scheduleaiohttp
+python-dotenv
+python-telegram-bot
+
