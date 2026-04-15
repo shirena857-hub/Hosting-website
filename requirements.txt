@@ -20,6 +20,10 @@ Flask-SocketIO
 eventlet
 dotenv
 python-telegram-bot
+schedule
+rich
+scheduleaiohttp
+python-dotenv
 attrs
 certifi
 charset-normalizer
@@ -28,8 +32,4 @@ multidict
 yarl
 frozenlist
 schedule
-rich
-scheduleaiohttp
-python-dotenv
-python-telegram-bot
 
