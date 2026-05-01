@@ -116,7 +116,7 @@ def create_app():
             db.execute('''INSERT INTO users 
                 (fname, lname, username, email, password, pfp, server_limit, role, status) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                (fname, lname, username, email, pwd, pfp_name, 10, 'free', 'active'))
+                (fname, lname, username, email, pwd, pfp_name, 2, 'free', 'active'))
             
             db.commit()
             db.close()
