@@ -22,7 +22,6 @@ dotenv
 python-telegram-bot
 schedule
 rich
-scheduleaiohttp
 python-dotenv
 attrs
 certifi
