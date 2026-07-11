@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ config.site_title }} - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: {{ config.colors[config.theme].primary }};
+            --secondary: {{ config.colors[config.theme].secondary }};
+            --accent: {{ config.colors[config.theme].accent }};
+            --bg: {{ config.colors[config.theme].background }};
+            --card-bg: {{ config.colors[config.theme].card_bg }};
+            --text: {{ config.colors[config.theme].text }};
+            --danger: {{ config.colors[config.theme].danger }};
+        }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+        }
+        
+        .matrix-column {
+            position: absolute;
+            top: 0;
+            color: var(--primary);
+            font-size: 14px;
+            line-height: 1;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            animation: matrix-fall linear infinite;
+        }
+        
+        @keyframes matrix-fall {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(100vh); }
+        }
+        
+        .login-container {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 30px var(--primary);
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px var(--primary); }
+            50% { box-shadow: 0 0 40px var(--primary); }
+            100% { box-shadow: 0 0 20px var(--primary); }
+        }
+        
+        .password-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .login-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--primary);
+            color: var(--text);
+            padding: 12px 45px 12px 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+        
+        .login-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 15px var(--secondary);
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+        
+        .toggle-password:hover {
+            opacity: 1;
+        }
+        
+        .login-button {
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .login-button:hover {
+            background: var(--primary);
+            color: var(--bg);
+            box-shadow: 0 0 20px var(--primary);
+        }
+        
+        .error-message {
+            color: var(--danger);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid var(--danger);
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(255,0,0,0.1);
+        }
+        
+        .terminal-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--text);
+            font-size: 14px;
+        }
+        
+        .terminal-prompt {
+            color: var(--primary);
+            margin-right: 10px;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background: var(--primary);
+            animation: blink 1s infinite;
+            margin-left: 5px;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .theme-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 10px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-bg" id="matrix"></div>
+    <div class="theme-indicator">{{ config.theme|upper }} MODE</div>
+    
+    <div class="login-container">
+        <div class="text-center mb-8">
+            <i class="fas fa-skull text-6xl mb-4" style="color: var(--primary);"></i>
+            <h1 class="text-3xl font-bold">{{ config.site_header }}</h1>
+            <p class="text-xs mt-2" style="color: var(--secondary);">SECURE TERMINAL v2.3</p>
+        </div>
+        
+        <div class="terminal-line">
+            <span class="terminal-prompt">$></span>
+            <span>LOGIN_REQUIRED SHAPPNO</span>
+            <span class="cursor"></span>
+        </div>
+        
+        {% if error %}
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="/login" id="loginForm">
+            <div class="password-container">
+                <input type="password" 
+                       name="password" 
+                       id="password"
+                       class="login-input" 
+                       placeholder="Enter Access Password"
+                       required
+                       autofocus>
+                <i class="fas fa-eye toggle-password" onclick="togglePassword()" id="toggleIcon"></i>
+            </div>
+            
+            <button type="submit" class="login-button">
+                <i class="fas fa-terminal mr-2"></i>
+                AUTHENTICATE
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center text-xs opacity-50">
+            <p>⚠️ UNAUTHORIZED ACCESS PROHIBITED</p>
+            <p class="mt-2">SHAPPNO SECURE SYSTEMS</p>
+        </div>
+    </div>
+
+    <script>
+        function createMatrix() {
+            const matrix = document.getElementById('matrix');
+            const columns = Math.floor(window.innerWidth / 20);
+            
+            for (let i = 0; i < columns; i++) {
+                const column = document.createElement('div');
+                column.className = 'matrix-column';
+                column.style.left = i * 20 + 'px';
+                column.style.animationDuration = Math.random() * 5 + 3 + 's';
+                column.style.animationDelay = Math.random() * 5 + 's';
+                
+                const chars = '01アイウエオカキクケコサシスセソタチツテト';
+                let text = '';
+                for (let j = 0; j < 20; j++) {
+                    text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+                }
+                column.innerHTML = text;
+                matrix.appendChild(column);
+            }
+        }
+        createMatrix();
+        
+        window.addEventListener('resize', () => {
+            document.getElementById('matrix').innerHTML = '';
+            createMatrix();
+        });
+        
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>
